@@ -2030,6 +2030,7 @@ void intel_ddi_get_config(struct intel_encoder *encoder,
 	struct intel_hdmi *intel_hdmi;
 	u32 temp, flags = 0;
 	struct drm_device *dev = dev_priv->dev;
+	bool hdmi_36bpc = false;
 
 	temp = I915_READ(TRANS_DDI_FUNC_CTL(cpu_transcoder));
 	if (temp & TRANS_DDI_PHSYNC)
@@ -2067,6 +2068,9 @@ void intel_ddi_get_config(struct intel_encoder *encoder,
 
 		if (intel_hdmi->infoframe_enabled(&encoder->base))
 			pipe_config->has_infoframe = true;
+
+		if (pipe_config->pipe_bpp == 36)
+			hdmi_36bpc = true;
 		break;
 	case TRANS_DDI_MODE_SELECT_DVI:
 	case TRANS_DDI_MODE_SELECT_FDI:
@@ -2110,6 +2114,9 @@ void intel_ddi_get_config(struct intel_encoder *encoder,
 		hsw_ddi_clock_get(encoder, pipe_config);
 	else
 		skl_ddi_clock_get(encoder, pipe_config);
+
+	if (hdmi_36bpc)
+		pipe_config->adjusted_mode.crtc_clock = pipe_config->port_clock * 2 / 3;
 }
 
 static void intel_ddi_destroy(struct drm_encoder *encoder)
